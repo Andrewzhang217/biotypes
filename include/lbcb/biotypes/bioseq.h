@@ -3,7 +3,7 @@
 
 #include <string_view>
 
-namespace lbcb::biotypes {
+namespace lbcb {
 
 struct Base {
   char value;
