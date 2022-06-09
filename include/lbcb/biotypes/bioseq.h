@@ -1,6 +1,7 @@
 #ifndef LBCB_BIOTYPES_BIOSEQ_H_
 #define LBCB_BIOTYPES_BIOSEQ_H_
 
+#include <string>
 #include <string_view>
 
 namespace lbcb {
@@ -19,6 +20,9 @@ class Sequence {
   // TODO: make iterator with value_type = Base
 
  private:
+  std::string name_;
+  std::string data_;
+  std::string quality_;
 };
 
 }  // namespace lbcb::biotypes
