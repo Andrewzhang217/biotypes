@@ -17,7 +17,7 @@ class Sequence {
   Sequence(std::string_view name, std::string_view data);
   Sequence(std::string_view name, std::string_view data,
            std::string_view quality);
-  static std::vector<std::uint64_t> Compress(std::string& data);
+
   // TODO: make iterator with value_type = Base
 
  private:
@@ -27,5 +27,9 @@ class Sequence {
 };
 
 }  // namespace lbcb
+
+namespace lbcb::detail {
+std::vector<std::uint64_t> Compress(std::string_view data);
+}
 
 #endif /* LBCB_BIOTYPES_BIOSEQ_H_  */
