@@ -16,13 +16,12 @@ Sequence::Sequence(std::string_view name, std::string_view data,
 
 namespace lbcb::detail {
 std::vector<std::uint64_t> Compress(std::string_view data) {
-  std::uint64_t block;
+  std::uint64_t block = 0;
   std::vector<std::uint64_t> compressed_data;
   compressed_data.reserve(data.size() / 32 + 1);
   int counter = 0;
   for (char it : data) {
     counter++;
-    block <<= 2;
     switch (it) {
       case 'A':
         block += 0b00;
@@ -47,6 +46,7 @@ std::vector<std::uint64_t> Compress(std::string_view data) {
       counter = 0;
       block = 0;
     }
+    block <<= 2;
   }
   // input size is not the multiple of 32
   //  block <<= (32 - counter);
