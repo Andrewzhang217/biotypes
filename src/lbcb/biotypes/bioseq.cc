@@ -49,8 +49,8 @@ std::vector<std::uint64_t> Compress(std::string_view data) {
     block <<= 2;
   }
   // input size is not the multiple of 32
-  //  block <<= (32 - counter);
-  //  compressed_data.emplace_back(block);
+  block <<= (31 - counter) * 2;
+  compressed_data.emplace_back(block);
   return compressed_data;
 }
 }  // namespace lbcb::detail
