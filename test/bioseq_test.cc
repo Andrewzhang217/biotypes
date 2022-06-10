@@ -51,5 +51,37 @@ TEST_CASE("biotypes/bioseq") {
     std::cout << res3[0] << std::endl;
     REQUIRE(res3[0] == expected_data);
   }
+  SECTION("compress (basic data_4)") {
+    std::string_view basic_data_4{"ATCTTGTATTCCTTAATTTTTTTTTTTTACGT"};
+    std::uint64_t expected_data =
+        0b0011011111101100111101011111000011111111111111111111111100011011;
+    auto res4 = Compress(basic_data_4);
+    std::cout << basic_data_4 << std::endl;
+    std::cout << expected_data << std::endl;
+    std::cout << res4[0] << std::endl;
+    REQUIRE(res4[0] == expected_data);
+  }
+  SECTION("compress (basic data_5)") {
+    std::string_view basic_data_5{"ATCTTGTATTCCTTAATTTTTTTTTTTTACGT"};
+    std::uint64_t expected_data =
+        0b0011011111101100111101011111000011111111111111111111111100011011;
+    auto res5 = Compress(basic_data_5);
+    std::cout << basic_data_5 << std::endl;
+    std::cout << expected_data << std::endl;
+    std::cout << res5[0] << std::endl;
+    REQUIRE(res5[0] == expected_data);
+  }
+  SECTION("compress (basic data_6)") {
+    std::string_view basic_data_6{
+        "ATCTTGTATTCCTTAATTTTTTTTTTTTACGTATCTTGTATTCCTTAATTTTTTTTTTTTACGT"};
+    std::uint64_t expected_data =
+        0b0011011111101100111101011111000011111111111111111111111100011011;
+    auto res6 = Compress(basic_data_6);
+    std::cout << basic_data_6 << std::endl;
+    std::cout << expected_data << std::endl;
+    std::cout << res6[0] << std::endl;
+    REQUIRE(res6[0] == expected_data);
+    REQUIRE(res6[1] == expected_data);
+  }
 }
 }  // namespace lbcb::detail
