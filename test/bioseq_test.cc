@@ -83,5 +83,36 @@ TEST_CASE("biotypes/bioseq") {
     REQUIRE(res6[0] == expected_data);
     REQUIRE(res6[1] == expected_data);
   }
+  // sequence of length that is not multiple of 32
+  SECTION("compress (basic data_7)") {
+    std::string_view basic_data_7{
+        "ATCTTGTATTCCTTAATTTTTTTTTTTTACGTATCTTGTATTCCTTAATTTTTTTTTTTTACGTGG"};
+    std::uint64_t expected_data =
+        0b0011011111101100111101011111000011111111111111111111111100011011;
+    std::uint64_t expected_data_trailing =
+        0b1010000000000000000000000000000000000000000000000000000000000000;
+    auto res7 = Compress(basic_data_7);
+    std::cout << basic_data_7 << std::endl;
+    std::cout << expected_data << std::endl;
+    std::cout << res7[0] << std::endl;
+    std::cout << res7[1] << std::endl;
+    std::cout << res7[2] << std::endl;
+    REQUIRE(res7[0] == expected_data);
+    REQUIRE(res7[1] == expected_data);
+    REQUIRE(res7[2] == expected_data_trailing);
+  }
+  SECTION("compress (basic data_8)") {
+    std::string_view basic_data_8{"ATCTTGTATTCCTTAATTTTTTTTTTTTACGTACG"};
+    std::uint64_t expected_data =
+        0b0011011111101100111101011111000011111111111111111111111100011011;
+    std::uint64_t expected_data_trailing =
+        0b0001100000000000000000000000000000000000000000000000000000000000;
+    auto res8 = Compress(basic_data_8);
+    std::cout << basic_data_8 << std::endl;
+    std::cout << expected_data << std::endl;
+    std::cout << res8[0] << std::endl;
+    REQUIRE(res8[0] == expected_data);
+    REQUIRE(res8[1] == expected_data_trailing);
+  }
 }
 }  // namespace lbcb::detail
