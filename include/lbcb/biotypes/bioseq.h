@@ -40,7 +40,7 @@ class Iterator {
   Iterator operator-(std::size_t diff) const { return Iterator(pos_ - diff); }
 
   bool operator==(const Iterator& rhs) const { return pos_ == rhs.pos_; }
-  bool operator!=(const Iterator& rhs) const { pos_ != rhs.pos_; }
+  bool operator!=(const Iterator& rhs) const { return pos_ != rhs.pos_; }
   bool operator>(const Iterator& rhs) const { return pos_ > rhs.pos_; }
   bool operator<(const Iterator& rhs) const { return pos_ <= rhs.pos_; }
   bool operator>=(const Iterator& rhs) const { return pos_ >= rhs.pos_; }
