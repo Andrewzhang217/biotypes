@@ -1,56 +1,72 @@
 #include "lbcb/biotypes/bioseq.h"
 
-#include <iostream>
+#include <cmath>
+#include <cstddef>
+#include <utility>
 #include <vector>
 
 namespace lbcb {
-
 Sequence::Sequence(std::string_view name, std::string_view data)
-    : name_((name)), data_(data) {
-  // TODO: magic
-}
+    : name_((name)),
+      compressed_data_(detail::Compress(data)),
+      size_(data.size()),
+      iterator_() {}
 Sequence::Sequence(std::string_view name, std::string_view data,
                    std::string_view quality)
-    : name_(name), data_(data), quality_(quality) {}
+    : name_(name),
+      compressed_data_(detail::Compress(data)),
+      compressed_quality_(detail::Compress(quality)),
+      size_(data.size()),
+      iterator_() {}
+Base Sequence::AtBase(std::size_t pos) {
+  assert(pos < size_);
+  return {AtValue(pos), AtQuality(pos)};
+}
+char Sequence::AtValue(std::size_t pos) {
+  assert(pos < size_);
+  std::uint64_t block = compressed_data_[pos >> 5];
+  block <<= 2 * (pos & 31);
+  return detail::kNucleotideDecoder[block >> 62];
+}
+char Sequence::AtQuality(std::size_t pos) { return {}; }
+Iterator<Base> Sequence::Begin() { return Iterator<Base>(0); }
+Iterator<Base> Sequence::End() { return Iterator<Base>(size_); }
+
 }  // namespace lbcb
 
 namespace lbcb::detail {
-std::vector<std::uint64_t> Compress(std::string_view data) {
-  std::uint64_t block = 0;
-  std::vector<std::uint64_t> compressed_data;
-  compressed_data.reserve(data.size() / 32 + 1);
-  int counter = 0;
-  for (char it : data) {
-    counter++;
-    switch (it) {
-      case 'A':
-        block += 0b00;
-        break;
-      case 'C':
-        block += 0b01;
-        break;
-      case 'G':
-        block += 0b10;
-        break;
-      case 'T':
-        block += 0b11;
-        break;
-      default:
-        assert(false);
-        std::cout << "Wrong input: not a nucleotide" << std::endl;
-        return compressed_data;
-    }
+std::vector<std::uint64_t> Compress(std::string_view src) {
+  std::vector<std::uint64_t> dst;
+  dst.resize(std::ceil(static_cast<double>(src.size()) / 32));
+  std::uint64_t active_block = 0U;
+  auto index = 0U;
 
-    if (counter == 32) {
-      compressed_data.emplace_back(block);
-      counter = 0;
-      block = 0;
+  for (auto i = 0U; i < src.size(); ++i) {
+    if (i > 0 && (i & 31) == 0) {
+      dst[index] = std::exchange(active_block, 0);
+      index++;
     }
-    block <<= 2;
+    active_block = (active_block << 2U) | kBaseEncodings[src[i]];
   }
-  // input size is not the multiple of 32
-  block <<= (31 - counter) * 2;
-  compressed_data.emplace_back(block);
-  return compressed_data;
+
+  dst[index] = active_block;
+  return dst;
 }
+std::string Decompress(const std::vector<std::uint64_t>& dst) {
+  std::string src;
+  for (unsigned long long it : dst) {
+    std::string curr;
+    int index = 0;
+    while (index < 32) {
+      std::uint64_t temp = (it & (3ULL << 62)) >> 62;
+      curr += kNucleotideDecoder[temp];
+      index++;
+      it <<= 2;
+    }
+    src += curr;
+    curr = "";
+  }
+  return src;
+}
+
 }  // namespace lbcb::detail
