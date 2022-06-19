@@ -36,9 +36,18 @@ class Iterator {
     pos_--;
     return *this;
   }
+  const Iterator operator++(int) {
+    Iterator tmp = *this;
+    ++(*this);
+    return tmp;
+  }
+  const Iterator operator--(int) {
+    Iterator tmp = *this;
+    --(*this);
+    return tmp;
+  }
   Iterator operator+(std::size_t diff) const { return Iterator(pos_ + diff); }
   Iterator operator-(std::size_t diff) const { return Iterator(pos_ - diff); }
-
   bool operator==(const Iterator& rhs) const { return pos_ == rhs.pos_; }
   bool operator!=(const Iterator& rhs) const { return pos_ != rhs.pos_; }
   bool operator>(const Iterator& rhs) const { return pos_ > rhs.pos_; }
@@ -67,9 +76,7 @@ class Sequence {
   std::vector<std::uint64_t> compressed_data_;
   std::vector<std::uint64_t> compressed_quality_;
   std::size_t size_;
-  Iterator<Base> iterator_;
 };
-
 }  // namespace lbcb
 
 namespace lbcb::detail {

@@ -9,15 +9,13 @@ namespace lbcb {
 Sequence::Sequence(std::string_view name, std::string_view data)
     : name_((name)),
       compressed_data_(detail::Compress(data)),
-      size_(data.size()),
-      iterator_() {}
+      size_(data.size()) {}
 Sequence::Sequence(std::string_view name, std::string_view data,
                    std::string_view quality)
     : name_(name),
       compressed_data_(detail::Compress(data)),
       compressed_quality_(detail::Compress(quality)),
-      size_(data.size()),
-      iterator_() {}
+      size_(data.size()) {}
 Base Sequence::AtBase(std::size_t pos) {
   assert(pos < size_);
   return {AtValue(pos), AtQuality(pos)};
