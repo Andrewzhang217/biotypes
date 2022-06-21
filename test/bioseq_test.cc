@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <iterator>
 #include <string_view>
-#include <vector>
 
 #include "catch2/catch_test_macros.hpp"
 
@@ -57,26 +56,26 @@ TEST_CASE("biotypes/bioseq") {
     REQUIRE(res6[1] == bits_array[4]);
     REQUIRE(res6[2] == trailing);
   }
-  SECTION("API: AtValue") {
-    REQUIRE(sequence0.AtValue(1) == 'A');
+  SECTION("API: atValue") {
+    REQUIRE(sequence0.atValue(1) == 'A');
     Sequence sequence4("sequence4", data_array[4]);
-    REQUIRE(sequence4.AtValue(5) == 'G');
-    REQUIRE(sequence4.AtValue(15) == 'A');
-    REQUIRE(sequence4.AtValue(31) == 'T');
+    REQUIRE(sequence4.atValue(5) == 'G');
+    REQUIRE(sequence4.atValue(15) == 'A');
+    REQUIRE(sequence4.atValue(31) == 'T');
     Sequence sequence6("sequence6", data_array[6]);
-    REQUIRE(sequence6.AtValue(32) == 'A');
+    REQUIRE(sequence6.atValue(32) == 'A');
   }
-  SECTION("API: AtQuality") {}
-  SECTION("API: AtBase") {}
-  SECTION("API: Begin") {
-    REQUIRE(sequence0.Begin() == Sequence::Iterator{sequence0, 0});
+  SECTION("API: atQuality") {}
+  SECTION("API: atBase") {}
+  SECTION("API: begin") {
+    REQUIRE(sequence0.begin() == Sequence::iterator{sequence0, 0});
   }
-  SECTION("API: End") {
-    REQUIRE(sequence0.End() ==
-            Sequence::Iterator{sequence0, data_array[0].size()});
+  SECTION("API: end") {
+    REQUIRE(sequence0.end() ==
+            Sequence::iterator{sequence0, data_array[0].size()});
   }
-  SECTION("Iterator") {
-    auto iterator = sequence4.Begin();
+  SECTION("iterator") {
+    auto iterator = sequence4.begin();
     iterator += 2;
     REQUIRE((*iterator).value == 'C');
     iterator -= 1;
@@ -88,23 +87,19 @@ TEST_CASE("biotypes/bioseq") {
     iterator++;
     REQUIRE(iterator->value == 'T');
     int counter = 0;
-    for (auto it = sequence4.Begin(); it != sequence4.End(); ++it) {
+    for (auto it = sequence4.begin(); it != sequence4.end(); ++it) {
       REQUIRE((*it).value == data_array[4][counter]);
       REQUIRE(it->value == data_array[4][counter++]);
     }
-    std::vector<Base> from_vector;
-    counter = 0;
-    for (auto it = sequence4.Begin(); it != sequence4.End(); ++it) {
-      REQUIRE(it->value == data_array[4][counter++]);
-      from_vector.emplace_back(*it);
-    }
-    std::vector<Base> to_vector;
-    std::copy(from_vector.begin(), from_vector.end(),
-              std::back_inserter(to_vector));
-    counter = 0;
-    for (auto& it : to_vector) {
-      REQUIRE(it.value == data_array[4][counter++]);
-    }
+    auto it = sequence4.begin();
+    REQUIRE(it[0].value == 'A');
+    REQUIRE(it[1].value == 'T');
+    REQUIRE(it[2].value == 'C');
+
+    auto buff = std::string(sequence4.size(), '0');
+    std::transform(sequence4.begin(), sequence4.end(), buff.begin(),
+                   [](Base const base) -> char { return base.value; });
+    REQUIRE(buff == data_array[4]);
   }
 }
 };  // namespace lbcb::testing

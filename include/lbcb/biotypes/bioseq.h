@@ -15,67 +15,83 @@ struct Base {
 
 class Sequence {
  public:
-  class Iterator {
+  class iterator {
    public:
-    Iterator(Sequence& sequence, std::size_t start_index)
+    typedef iterator self_type;
+    typedef Base value_type;
+    typedef const Base& reference;
+    typedef const Base* pointer;
+
+    iterator(Sequence& sequence, std::size_t start_index)
         : sequence_(sequence), pos_(start_index) {
-      if (start_index < sequence.size_) base_ = sequence.AtBase(start_index);
+      if (start_index < sequence.size_) {
+        base_ = sequence.atBase(start_index);
+      } else {
+        base_ = {'4', '4'};
+      }
     }
-    Base operator*() const { return sequence_.AtBase(pos_); }
-    Base* operator->() const {
-      Base* ptr;
-      *ptr = sequence_.AtBase(pos_);
-      return ptr;
-    }
-    Iterator& operator=(const Iterator& other) {
+    reference operator*() { return base_; }
+    pointer operator->() const { return &base_; }
+    value_type operator[](std::size_t pos) { return sequence_.atBase(pos); }
+    self_type& operator=(const self_type& other) {
       sequence_ = other.sequence_;
       pos_ = other.pos_;
-      base_ = other.base_;
+      if (pos_ != sequence_.size()) base_ = other.base_;
       return *this;
     }
-    Iterator& operator+=(std::size_t diff) {
+    self_type& operator+=(std::size_t diff) {
       pos_ += diff;
+      if (pos_ != sequence_.size()) base_ = sequence_.atBase(pos_);
       return *this;
     }
-    Iterator& operator-=(std::size_t diff) {
+    self_type& operator-=(std::size_t diff) {
       pos_ -= diff;
+      if (pos_ != sequence_.size()) base_ = sequence_.atBase(pos_);
       return *this;
     }
-    Iterator& operator++() {
+    self_type& operator++() {
       pos_++;
+      if (pos_ != sequence_.size()) base_ = sequence_.atBase(pos_);
       return *this;
     }
-    Iterator& operator--() {
+    self_type& operator--() {
       pos_--;
+      if (pos_ != sequence_.size()) base_ = sequence_.atBase(pos_);
       return *this;
     }
-    const Iterator operator++(int) {
-      Iterator tmp = *this;
+    const self_type operator++(int) {
+      self_type tmp = *this;
       ++(*this);
       return tmp;
     }
-    const Iterator operator--(int) {
-      Iterator tmp = *this;
+    const self_type operator--(int) {
+      self_type tmp = *this;
       --(*this);
       return tmp;
     }
-    Iterator& operator+(std::size_t diff) {
+    self_type& operator+(std::size_t diff) {
       pos_ += diff;
+      if (pos_ != sequence_.size()) base_ = sequence_.atBase(pos_);
       return *this;
     }
-    Iterator& operator-(std::size_t diff) {
+    self_type& operator-(std::size_t diff) {
       pos_ -= diff;
+      if (pos_ != sequence_.size()) base_ = sequence_.atBase(pos_);
       return *this;
     }
-    bool operator==(const Iterator& rhs) const { return pos_ == rhs.pos_; }
-    bool operator!=(const Iterator& rhs) const { return pos_ != rhs.pos_; }
-    bool operator>(const Iterator& rhs) const { return pos_ > rhs.pos_; }
-    bool operator<(const Iterator& rhs) const { return pos_ <= rhs.pos_; }
-    bool operator>=(const Iterator& rhs) const { return pos_ >= rhs.pos_; }
-    bool operator<=(const Iterator& rhs) const { return pos_ <= rhs.pos_; }
+    bool operator==(const self_type& rhs) const {
+      return &(this->sequence_) == &(rhs.sequence_) && pos_ == rhs.pos_;
+    }
+    bool operator!=(const self_type& rhs) const {
+      return &(this->sequence_) != &(rhs.sequence_) || pos_ != rhs.pos_;
+    }
+    bool operator>(const self_type& rhs) const { return pos_ > rhs.pos_; }
+    bool operator<(const self_type& rhs) const { return pos_ <= rhs.pos_; }
+    bool operator>=(const self_type& rhs) const { return pos_ >= rhs.pos_; }
+    bool operator<=(const self_type& rhs) const { return pos_ <= rhs.pos_; }
 
    private:
-    Base base_{};
+    Base base_;
     Sequence& sequence_;
     std::size_t pos_;
   };
@@ -83,11 +99,12 @@ class Sequence {
   Sequence(std::string_view name, std::string_view data,
            std::string_view quality);
 
-  [[nodiscard]] Base AtBase(std::size_t pos) const;
-  [[nodiscard]] char AtValue(std::size_t pos) const;
-  [[nodiscard]] char AtQuality(std::size_t pos) const;
-  [[nodiscard]] Sequence::Iterator Begin();
-  [[nodiscard]] Sequence::Iterator End();
+  [[nodiscard]] std::size_t size() const noexcept;
+  [[nodiscard]] Base atBase(std::size_t pos) const;
+  [[nodiscard]] char atValue(std::size_t pos) const;
+  [[nodiscard]] char atQuality(std::size_t pos) const;
+  [[nodiscard]] Sequence::iterator begin();
+  [[nodiscard]] Sequence::iterator end();
 
  private:
   std::string name_;

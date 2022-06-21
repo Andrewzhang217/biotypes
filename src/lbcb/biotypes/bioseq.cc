@@ -16,19 +16,20 @@ Sequence::Sequence(std::string_view name, std::string_view data,
       compressed_data_(detail::Compress(data)),
       compressed_quality_(detail::Compress(quality)),
       size_(data.size()) {}
-Base Sequence::AtBase(std::size_t pos) const {
+Base Sequence::atBase(std::size_t pos) const {
   assert(pos < size_);
-  return {AtValue(pos), AtQuality(pos)};
+  return {atValue(pos), atQuality(pos)};
 }
-char Sequence::AtValue(std::size_t pos) const {
+char Sequence::atValue(std::size_t pos) const {
   assert(pos < size_);
   std::uint64_t block = compressed_data_[pos >> 5];
   block <<= 2 * (pos & 31);
   return detail::kNucleotideDecoder[block >> 62];
 }
-char Sequence::AtQuality(std::size_t pos) const { return {}; }
-Sequence::Iterator Sequence::Begin() { return {*this, 0}; }
-Sequence::Iterator Sequence::End() { return {*this, size_}; }
+char Sequence::atQuality(std::size_t pos) const { return {}; }
+Sequence::iterator Sequence::begin() { return {*this, 0}; }
+Sequence::iterator Sequence::end() { return {*this, size_}; }
+std::size_t Sequence::size() const noexcept { return size_; }
 
 }  // namespace lbcb
 
