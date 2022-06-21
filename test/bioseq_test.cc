@@ -1,6 +1,9 @@
 #include "lbcb/biotypes//bioseq.h"
 
+#include <algorithm>
+#include <iterator>
 #include <string_view>
+#include <vector>
 
 #include "catch2/catch_test_macros.hpp"
 
@@ -32,6 +35,7 @@ static constexpr std::uint64_t trailing(
     0b0000000000000000000000000000000000000000000000000000000000001010);
 
 static Sequence sequence0("sequence0", data_array[0]);
+static Sequence sequence4("sequence4", data_array[4]);
 
 TEST_CASE("biotypes/bioseq") {
   SECTION("Compress (basic data)") {
@@ -64,26 +68,42 @@ TEST_CASE("biotypes/bioseq") {
   }
   SECTION("API: AtQuality") {}
   SECTION("API: AtBase") {}
-  SECTION("API: Begin") { REQUIRE(sequence0.Begin().GetPos() == 0); }
+  SECTION("API: Begin") {
+    REQUIRE(sequence0.Begin() == Sequence::Iterator{sequence0, 0});
+  }
   SECTION("API: End") {
-    REQUIRE(sequence0.End().GetPos() == data_array[0].size());
+    REQUIRE(sequence0.End() ==
+            Sequence::Iterator{sequence0, data_array[0].size()});
   }
   SECTION("Iterator") {
-    auto iterator = sequence0.Begin();
+    auto iterator = sequence4.Begin();
     iterator += 2;
-    REQUIRE(iterator.GetPos() == 2);
+    REQUIRE((*iterator).value == 'C');
     iterator -= 1;
-    REQUIRE(iterator.GetPos() == 1);
-    iterator = iterator + 5;
-    REQUIRE(iterator.GetPos() == 6);
-    iterator = iterator - 3;
-    REQUIRE(iterator.GetPos() == 3);
-    auto it2 = sequence0.End();
-    REQUIRE(it2.GetPos() == 32);
-    Sequence sequence4{"sequence4", data_array[4]};
+    REQUIRE((*iterator).value == 'T');
+    iterator = iterator + 6;
+    REQUIRE((*iterator).value == 'A');
+    iterator = iterator - 2;
+    REQUIRE((*iterator).value == 'G');
+    iterator++;
+    REQUIRE(iterator->value == 'T');
+    int counter = 0;
     for (auto it = sequence4.Begin(); it != sequence4.End(); ++it) {
-      std::size_t curr_pos = it.GetPos();
-      REQUIRE(sequence4.AtValue(curr_pos) == data_array[4][curr_pos]);
+      REQUIRE((*it).value == data_array[4][counter]);
+      REQUIRE(it->value == data_array[4][counter++]);
+    }
+    std::vector<Base> from_vector;
+    counter = 0;
+    for (auto it = sequence4.Begin(); it != sequence4.End(); ++it) {
+      REQUIRE(it->value == data_array[4][counter++]);
+      from_vector.emplace_back(*it);
+    }
+    std::vector<Base> to_vector;
+    std::copy(from_vector.begin(), from_vector.end(),
+              std::back_inserter(to_vector));
+    counter = 0;
+    for (auto& it : to_vector) {
+      REQUIRE(it.value == data_array[4][counter++]);
     }
   }
 }

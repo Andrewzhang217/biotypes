@@ -13,63 +13,81 @@ struct Base {
   char phred33;
 };
 
-template <typename T>
-class Iterator {
- public:
-  Iterator() : pos_(0) {}
-  explicit Iterator(std::size_t pos) : pos_(pos) {}
-
-  std::size_t GetPos() { return pos_; };
-  Iterator& operator+=(std::size_t diff) {
-    pos_ += diff;
-    return *this;
-  }
-  Iterator& operator-=(std::size_t diff) {
-    pos_ -= diff;
-    return *this;
-  }
-  Iterator& operator++() {
-    pos_++;
-    return *this;
-  }
-  Iterator& operator--() {
-    pos_--;
-    return *this;
-  }
-  const Iterator operator++(int) {
-    Iterator tmp = *this;
-    ++(*this);
-    return tmp;
-  }
-  const Iterator operator--(int) {
-    Iterator tmp = *this;
-    --(*this);
-    return tmp;
-  }
-  Iterator operator+(std::size_t diff) const { return Iterator(pos_ + diff); }
-  Iterator operator-(std::size_t diff) const { return Iterator(pos_ - diff); }
-  bool operator==(const Iterator& rhs) const { return pos_ == rhs.pos_; }
-  bool operator!=(const Iterator& rhs) const { return pos_ != rhs.pos_; }
-  bool operator>(const Iterator& rhs) const { return pos_ > rhs.pos_; }
-  bool operator<(const Iterator& rhs) const { return pos_ <= rhs.pos_; }
-  bool operator>=(const Iterator& rhs) const { return pos_ >= rhs.pos_; }
-  bool operator<=(const Iterator& rhs) const { return pos_ <= rhs.pos_; }
-
- private:
-  std::size_t pos_;
-};
-
 class Sequence {
  public:
+  class Iterator {
+   public:
+    Iterator(Sequence& sequence, std::size_t start_index)
+        : sequence_(sequence), pos_(start_index) {
+      if (start_index < sequence.size_) base_ = sequence.AtBase(start_index);
+    }
+    Base operator*() const { return sequence_.AtBase(pos_); }
+    Base* operator->() const {
+      Base* ptr;
+      *ptr = sequence_.AtBase(pos_);
+      return ptr;
+    }
+    Iterator& operator=(const Iterator& other) {
+      sequence_ = other.sequence_;
+      pos_ = other.pos_;
+      base_ = other.base_;
+      return *this;
+    }
+    Iterator& operator+=(std::size_t diff) {
+      pos_ += diff;
+      return *this;
+    }
+    Iterator& operator-=(std::size_t diff) {
+      pos_ -= diff;
+      return *this;
+    }
+    Iterator& operator++() {
+      pos_++;
+      return *this;
+    }
+    Iterator& operator--() {
+      pos_--;
+      return *this;
+    }
+    const Iterator operator++(int) {
+      Iterator tmp = *this;
+      ++(*this);
+      return tmp;
+    }
+    const Iterator operator--(int) {
+      Iterator tmp = *this;
+      --(*this);
+      return tmp;
+    }
+    Iterator& operator+(std::size_t diff) {
+      pos_ += diff;
+      return *this;
+    }
+    Iterator& operator-(std::size_t diff) {
+      pos_ -= diff;
+      return *this;
+    }
+    bool operator==(const Iterator& rhs) const { return pos_ == rhs.pos_; }
+    bool operator!=(const Iterator& rhs) const { return pos_ != rhs.pos_; }
+    bool operator>(const Iterator& rhs) const { return pos_ > rhs.pos_; }
+    bool operator<(const Iterator& rhs) const { return pos_ <= rhs.pos_; }
+    bool operator>=(const Iterator& rhs) const { return pos_ >= rhs.pos_; }
+    bool operator<=(const Iterator& rhs) const { return pos_ <= rhs.pos_; }
+
+   private:
+    Base base_{};
+    Sequence& sequence_;
+    std::size_t pos_;
+  };
   Sequence(std::string_view name, std::string_view data);
   Sequence(std::string_view name, std::string_view data,
            std::string_view quality);
 
-  [[nodiscard]] Base AtBase(std::size_t pos);
-  [[nodiscard]] char AtValue(std::size_t pos);
-  [[nodiscard]] char AtQuality(std::size_t pos);
-  [[nodiscard]] Iterator<Base> Begin();
-  [[nodiscard]] Iterator<Base> End();
+  [[nodiscard]] Base AtBase(std::size_t pos) const;
+  [[nodiscard]] char AtValue(std::size_t pos) const;
+  [[nodiscard]] char AtQuality(std::size_t pos) const;
+  [[nodiscard]] Sequence::Iterator Begin();
+  [[nodiscard]] Sequence::Iterator End();
 
  private:
   std::string name_;
