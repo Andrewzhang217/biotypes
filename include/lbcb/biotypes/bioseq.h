@@ -2,6 +2,7 @@
 #define LBCB_BIOTYPES_BIOSEQ_H_
 
 #include <array>
+#include <memory>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -17,78 +18,88 @@ class Sequence {
  public:
   class iterator {
    public:
-    typedef iterator self_type;
-    typedef Base value_type;
-    typedef const Base& reference;
-    typedef const Base* pointer;
+    using value_type = Base;
+    using reference = const Base&;
+    using pointer = const Base*;
 
     iterator(Sequence& sequence, std::size_t start_index)
         : sequence_(sequence), pos_(start_index) {
       if (start_index < sequence.size_) {
         base_ = sequence.atBase(start_index);
       } else {
-        base_ = {'4', '4'};
+        base_ = kSentinel;
       }
     }
-    reference operator*() { return base_; }
-    pointer operator->() const { return &base_; }
-    value_type operator[](std::size_t pos) { return sequence_.atBase(pos); }
-    self_type& operator=(const self_type& other) {
+    reference operator*() noexcept { return base_; }
+    pointer operator->() const noexcept { return &base_; }
+    value_type operator[](std::size_t pos) noexcept {
+      return sequence_.atBase(pos);
+    }
+    iterator& operator=(const iterator& other) noexcept {
       sequence_ = other.sequence_;
       pos_ = other.pos_;
       if (pos_ != sequence_.size()) base_ = other.base_;
       return *this;
     }
-    self_type& operator+=(std::size_t diff) {
+    iterator& operator+=(std::size_t diff) noexcept {
       pos_ += diff;
       if (pos_ != sequence_.size()) base_ = sequence_.atBase(pos_);
       return *this;
     }
-    self_type& operator-=(std::size_t diff) {
+    iterator& operator-=(std::size_t diff) noexcept {
       pos_ -= diff;
       if (pos_ != sequence_.size()) base_ = sequence_.atBase(pos_);
       return *this;
     }
-    self_type& operator++() {
+    iterator& operator++() noexcept {
       pos_++;
       if (pos_ != sequence_.size()) base_ = sequence_.atBase(pos_);
       return *this;
     }
-    self_type& operator--() {
+    iterator& operator--() noexcept {
       pos_--;
       if (pos_ != sequence_.size()) base_ = sequence_.atBase(pos_);
       return *this;
     }
-    const self_type operator++(int) {
-      self_type tmp = *this;
+    const iterator operator++(int) noexcept {
+      auto tmp = *this;
       ++(*this);
       return tmp;
     }
-    const self_type operator--(int) {
-      self_type tmp = *this;
+    const iterator operator--(int) noexcept {
+      auto tmp = *this;
       --(*this);
       return tmp;
     }
-    self_type& operator+(std::size_t diff) {
+    iterator& operator+(std::size_t diff) noexcept {
       pos_ += diff;
       if (pos_ != sequence_.size()) base_ = sequence_.atBase(pos_);
       return *this;
     }
-    self_type& operator-(std::size_t diff) {
+    iterator& operator-(std::size_t diff) noexcept {
       pos_ -= diff;
       if (pos_ != sequence_.size()) base_ = sequence_.atBase(pos_);
       return *this;
     }
-    bool operator==(const self_type& rhs) const {
-      return &(this->sequence_) == &(rhs.sequence_) && pos_ == rhs.pos_;
+    bool operator==(const iterator& rhs) const noexcept {
+      return std::addressof(this->sequence_) == std::addressof(rhs.sequence_) &&
+             pos_ == rhs.pos_;
     }
-    bool operator!=(const self_type& rhs) const {
-      return &(this->sequence_) != &(rhs.sequence_) || pos_ != rhs.pos_;
+    bool operator!=(const iterator& rhs) const noexcept {
+      return !(*this == rhs);
     }
-    bool operator>(const self_type& rhs) const { return pos_ > rhs.pos_; }
-    bool operator<(const self_type& rhs) const { return pos_ <= rhs.pos_; }
-    bool operator>=(const self_type& rhs) const { return pos_ >= rhs.pos_; }
-    bool operator<=(const self_type& rhs) const { return pos_ <= rhs.pos_; }
+    bool operator>(const iterator& rhs) const noexcept {
+      return pos_ > rhs.pos_;
+    }
+    bool operator<(const iterator& rhs) const noexcept {
+      return pos_ <= rhs.pos_;
+    }
+    bool operator>=(const iterator& rhs) const noexcept {
+      return pos_ >= rhs.pos_;
+    }
+    bool operator<=(const iterator& rhs) const noexcept {
+      return pos_ <= rhs.pos_;
+    }
 
    private:
     Base base_;
@@ -111,6 +122,8 @@ class Sequence {
   std::vector<std::uint64_t> compressed_data_;
   std::vector<std::uint64_t> compressed_quality_;
   std::size_t size_;
+  static constexpr Base kSentinel{static_cast<char>(255),
+                                  static_cast<char>(255)};
 };
 }  // namespace lbcb
 
