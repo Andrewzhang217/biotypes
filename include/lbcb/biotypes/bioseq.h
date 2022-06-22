@@ -2,6 +2,7 @@
 #define LBCB_BIOTYPES_BIOSEQ_H_
 
 #include <array>
+#include <iostream>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -22,10 +23,10 @@ class Sequence {
     using reference = const Base&;
     using pointer = const Base*;
 
-    iterator(Sequence& sequence, std::size_t start_index)
+    iterator(Sequence* sequence, std::size_t start_index)
         : sequence_(sequence), pos_(start_index) {
-      if (start_index < sequence.size_) {
-        base_ = sequence.atBase(start_index);
+      if (start_index < sequence->size_) {
+        base_ = sequence->atBase(start_index);
       } else {
         base_ = kSentinel;
       }
@@ -33,32 +34,35 @@ class Sequence {
     reference operator*() noexcept { return base_; }
     pointer operator->() const noexcept { return &base_; }
     value_type operator[](std::size_t pos) noexcept {
-      return sequence_.atBase(pos);
+      return sequence_->atBase(pos);
     }
-    iterator& operator=(const iterator& other) noexcept {
-      sequence_ = other.sequence_;
-      pos_ = other.pos_;
-      if (pos_ != sequence_.size()) base_ = other.base_;
-      return *this;
-    }
+    iterator& operator=(const iterator& other) = default;
     iterator& operator+=(std::size_t diff) noexcept {
       pos_ += diff;
-      if (pos_ != sequence_.size()) base_ = sequence_.atBase(pos_);
+      if (pos_ >= 0 && pos_ < sequence_->size()) {
+        base_ = sequence_->atBase(pos_);
+      }
       return *this;
     }
     iterator& operator-=(std::size_t diff) noexcept {
       pos_ -= diff;
-      if (pos_ != sequence_.size()) base_ = sequence_.atBase(pos_);
+      if (pos_ >= 0 && pos_ < sequence_->size()) {
+        base_ = sequence_->atBase(pos_);
+      }
       return *this;
     }
     iterator& operator++() noexcept {
       pos_++;
-      if (pos_ != sequence_.size()) base_ = sequence_.atBase(pos_);
+      if (pos_ >= 0 && pos_ < sequence_->size()) {
+        base_ = sequence_->atBase(pos_);
+      }
       return *this;
     }
     iterator& operator--() noexcept {
       pos_--;
-      if (pos_ != sequence_.size()) base_ = sequence_.atBase(pos_);
+      if (pos_ >= 0 && pos_ < sequence_->size()) {
+        base_ = sequence_->atBase(pos_);
+      }
       return *this;
     }
     const iterator operator++(int) noexcept {
@@ -71,39 +75,41 @@ class Sequence {
       --(*this);
       return tmp;
     }
-    iterator& operator+(std::size_t diff) noexcept {
-      pos_ += diff;
-      if (pos_ != sequence_.size()) base_ = sequence_.atBase(pos_);
-      return *this;
+    iterator& operator+(std::size_t diff) const noexcept {
+      auto it = new iterator(sequence_, pos_ + diff);
+      return *it;
     }
-    iterator& operator-(std::size_t diff) noexcept {
-      pos_ -= diff;
-      if (pos_ != sequence_.size()) base_ = sequence_.atBase(pos_);
-      return *this;
+    iterator& operator-(std::size_t diff) const noexcept {
+      auto it = new iterator(sequence_, pos_ - diff);
+      return *it;
     }
     bool operator==(const iterator& rhs) const noexcept {
-      return std::addressof(this->sequence_) == std::addressof(rhs.sequence_) &&
+      return std::addressof(*sequence_) == std::addressof(*rhs.sequence_) &&
              pos_ == rhs.pos_;
     }
     bool operator!=(const iterator& rhs) const noexcept {
       return !(*this == rhs);
     }
     bool operator>(const iterator& rhs) const noexcept {
-      return pos_ > rhs.pos_;
+      return std::addressof(*sequence_) == std::addressof(*rhs.sequence_) &&
+             pos_ > rhs.pos_;
     }
     bool operator<(const iterator& rhs) const noexcept {
-      return pos_ <= rhs.pos_;
+      return std::addressof(*sequence_) == std::addressof(*rhs.sequence_) &&
+             pos_ <= rhs.pos_;
     }
     bool operator>=(const iterator& rhs) const noexcept {
-      return pos_ >= rhs.pos_;
+      return std::addressof(*sequence_) == std::addressof(*rhs.sequence_) &&
+             pos_ >= rhs.pos_;
     }
     bool operator<=(const iterator& rhs) const noexcept {
-      return pos_ <= rhs.pos_;
+      return std::addressof(*sequence_) == std::addressof(*rhs.sequence_) &&
+             pos_ <= rhs.pos_;
     }
 
    private:
     Base base_;
-    Sequence& sequence_;
+    Sequence* sequence_;
     std::size_t pos_;
   };
   Sequence(std::string_view name, std::string_view data);

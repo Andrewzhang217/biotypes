@@ -27,8 +27,8 @@ char Sequence::atValue(std::size_t pos) const {
   return detail::kNucleotideDecoder[block >> 62];
 }
 char Sequence::atQuality(std::size_t pos) const { return {}; }
-Sequence::iterator Sequence::begin() { return {*this, 0}; }
-Sequence::iterator Sequence::end() { return {*this, size_}; }
+Sequence::iterator Sequence::begin() { return {this, 0}; }
+Sequence::iterator Sequence::end() { return {this, size_}; }
 std::size_t Sequence::size() const noexcept { return size_; }
 
 }  // namespace lbcb

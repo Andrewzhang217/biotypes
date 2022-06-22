@@ -1,7 +1,9 @@
 #include "lbcb/biotypes//bioseq.h"
 
 #include <algorithm>
+#include <iostream>
 #include <iterator>
+#include <memory>
 #include <string_view>
 
 #include "catch2/catch_test_macros.hpp"
@@ -35,7 +37,8 @@ static constexpr std::uint64_t trailing(
 
 static Sequence sequence0("sequence0", data_array[0]);
 static Sequence sequence4("sequence4", data_array[4]);
-
+static Sequence* ptr0{&sequence0};
+static Sequence* ptr4(&sequence4);
 TEST_CASE("biotypes/bioseq") {
   SECTION("Compress (basic data)") {
     auto res0 = detail::Compress(data_array[0]);
@@ -68,11 +71,10 @@ TEST_CASE("biotypes/bioseq") {
   SECTION("API: atQuality") {}
   SECTION("API: atBase") {}
   SECTION("API: begin") {
-    REQUIRE(sequence0.begin() == Sequence::iterator{sequence0, 0});
+    REQUIRE(sequence0.begin() == Sequence::iterator{ptr0, 0});
   }
   SECTION("API: end") {
-    REQUIRE(sequence0.end() ==
-            Sequence::iterator{sequence0, data_array[0].size()});
+    REQUIRE(sequence4.end() == Sequence::iterator{ptr4, data_array[0].size()});
   }
   SECTION("iterator") {
     auto iterator = sequence4.begin();
