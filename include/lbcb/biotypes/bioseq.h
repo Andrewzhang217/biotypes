@@ -84,27 +84,22 @@ class Sequence {
       return *it;
     }
     bool operator==(const iterator& rhs) const noexcept {
-      return std::addressof(*sequence_) == std::addressof(*rhs.sequence_) &&
-             pos_ == rhs.pos_;
+      return sequence_ == rhs.sequence_ && pos_ == rhs.pos_;
     }
     bool operator!=(const iterator& rhs) const noexcept {
       return !(*this == rhs);
     }
     bool operator>(const iterator& rhs) const noexcept {
-      return std::addressof(*sequence_) == std::addressof(*rhs.sequence_) &&
-             pos_ > rhs.pos_;
+      return sequence_ == rhs.sequence_ && pos_ > rhs.pos_;
     }
     bool operator<(const iterator& rhs) const noexcept {
-      return std::addressof(*sequence_) == std::addressof(*rhs.sequence_) &&
-             pos_ <= rhs.pos_;
+      return sequence_ == rhs.sequence_ && pos_ <= rhs.pos_;
     }
     bool operator>=(const iterator& rhs) const noexcept {
-      return std::addressof(*sequence_) == std::addressof(*rhs.sequence_) &&
-             pos_ >= rhs.pos_;
+      return sequence_ == rhs.sequence_ && pos_ >= rhs.pos_;
     }
     bool operator<=(const iterator& rhs) const noexcept {
-      return std::addressof(*sequence_) == std::addressof(*rhs.sequence_) &&
-             pos_ <= rhs.pos_;
+      return sequence_ == rhs.sequence_ && pos_ <= rhs.pos_;
     }
 
    private:
@@ -116,6 +111,8 @@ class Sequence {
   Sequence(std::string_view name, std::string_view data,
            std::string_view quality);
 
+  static constexpr Base kSentinel{static_cast<char>(255),
+                                  static_cast<char>(255)};
   [[nodiscard]] std::size_t size() const noexcept;
   [[nodiscard]] Base atBase(std::size_t pos) const;
   [[nodiscard]] char atValue(std::size_t pos) const;
@@ -128,8 +125,6 @@ class Sequence {
   std::vector<std::uint64_t> compressed_data_;
   std::vector<std::uint64_t> compressed_quality_;
   std::size_t size_;
-  static constexpr Base kSentinel{static_cast<char>(255),
-                                  static_cast<char>(255)};
 };
 }  // namespace lbcb
 
