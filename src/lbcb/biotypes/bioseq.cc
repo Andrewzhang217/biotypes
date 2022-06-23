@@ -45,7 +45,7 @@ static constexpr auto kBaseEncodings = std::array<std::uint8_t, 256> {
              W 0 w 0
              Y 3 y 3
  */
-inline char constexpr kNucleotideDecoder[] = {'A', 'C', 'G', 'T'};
+static constexpr char kNucleotideDecoder[] = {'A', 'C', 'G', 'T'};
 
 std::vector<std::uint64_t> Compress(std::string_view src) {
   std::vector<std::uint64_t> dst;
@@ -83,6 +83,9 @@ std::string Decompress(const std::vector<std::uint64_t>& dst) {
 }  // namespace lbcb::detail
 
 namespace lbcb {
+constexpr bool Base::operator==(const Base& other) {
+  return value == other.value && phred33 == other.phred33;
+}
 Sequence::iterator::iterator(const lbcb::Sequence* sequence,
                              std::size_t start_index)
     : sequence_(sequence), pos_(start_index) {
@@ -195,6 +198,7 @@ char Sequence::atValue(std::size_t pos) const {
 char Sequence::atQuality(std::size_t pos) const { return {}; }
 Sequence::iterator Sequence::begin() const { return {this, 0}; }
 Sequence::iterator Sequence::end() const { return {this, size_}; }
+std::string Sequence::name() const noexcept { return name_; }
 std::size_t Sequence::size() const noexcept { return size_; }
 
 }  // namespace lbcb

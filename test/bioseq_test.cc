@@ -25,16 +25,6 @@ static constexpr std::array<std::string_view, 32> quality_array{
     "7?CIGJB:D:-F7LA:GI9FDHBIJ7,GHGJBKHNI7IN,EML8IFIA7HN7J6,L6686LCJE?"
     "JKA6G7AK6GK5C6@6IK+++?5+=<;227*6054"};
 
-static constexpr std::array<std::uint64_t, 32> bits_array{
-    0b0000000000000000000000000000000000000000000000000000000000000000,
-    0b0101010101010101010101010101010101010101010101010101010101010101,
-    0b1010101010101010101010101010101010101010101010101010101010101010,
-    0b1111111111111111111111111111111111111111111111111111111111111111,
-    0b0011011111101100111101011111000011111111111111111111111100011011,
-};
-static constexpr std::uint64_t trailing(
-    0b0000000000000000000000000000000000000000000000000000000000001010);
-
 static const Sequence sequence0("sequence0", data_array[0]);
 static const Sequence sequence1("sequence1", data_array[1]);
 static const Sequence sequence2("sequence2", data_array[2]);
@@ -46,7 +36,7 @@ static const Sequence* ptr2(&sequence2);
 static const Sequence* ptr3(&sequence3);
 static const Sequence* ptr4(&sequence4);
 
-TEST_CASE("biotypes/bioseq") {
+TEST_CASE("biotypes/bioseq::Sequence") {
   SECTION("API: atValue") {
     REQUIRE(sequence0.atValue(1) == 'A');
     Sequence sequence4("sequence4", data_array[4]);
@@ -58,12 +48,62 @@ TEST_CASE("biotypes/bioseq") {
   }
   SECTION("API: atQuality") {}
   SECTION("API: atBase") {}
-  SECTION("API: begin") {
-    REQUIRE(sequence0.begin() == Sequence::iterator{ptr0, 0});
-  }
+  SECTION("API: begin") { REQUIRE(sequence4.begin()->value == 'A'); }
   SECTION("API: end") {
-    REQUIRE(sequence4.end() == Sequence::iterator{ptr4, data_array[0].size()});
+    REQUIRE((*sequence4.end()).value == Sequence::kSentinel.value);
+    REQUIRE((*sequence4.end()).phred33 == Sequence::kSentinel.phred33);
   }
+  SECTION("Sequence copy") {
+    SECTION("copy construction") {
+      auto const seq0_cpy(sequence0);
+      REQUIRE(seq0_cpy.size() == sequence0.size());
+      for (auto it = 0; it < seq0_cpy.size(); ++it) {
+        REQUIRE(seq0_cpy.atValue(it) == sequence0.atValue(it));
+      }
+    }
+
+    SECTION("copy assignment") {
+      auto const seq0_cpy = sequence0;
+      REQUIRE(seq0_cpy.size() == sequence0.size());
+      for (auto it = 0; it < seq0_cpy.size(); ++it) {
+        REQUIRE(seq0_cpy.atValue(it) == sequence0.atValue(it));
+      }
+    }
+
+    SECTION("move construction") {
+      auto const seq1_cpy(std::move(sequence1));
+
+      CHECK(sequence1.name() == "sequence1");
+      CHECK(sequence1.size() == 32);
+      for (auto i = 0; i < 32; ++i) {
+        CHECK(sequence1.atValue(i) == data_array[1][i]);
+      }
+
+      CHECK(seq1_cpy.name() == sequence1.name());
+      CHECK(seq1_cpy.size() == sequence1.size());
+      for (auto i = 0; i < 32; ++i) {
+        CHECK(seq1_cpy.atValue(i) == data_array[1][i]);
+      }
+    }
+
+    SECTION("move assignment") {
+      auto const seq4_cpy = std::move(sequence4);
+
+      CHECK(sequence4.name() == "sequence4");
+      CHECK(sequence4.size() == 32);
+      for (auto i = 0; i < 32; ++i) {
+        CHECK(sequence4.atValue(i) == data_array[4][i]);
+      }
+
+      CHECK(seq4_cpy.name() == sequence4.name());
+      CHECK(seq4_cpy.size() == sequence4.size());
+      for (auto i = 0; i < 32; ++i) {
+        CHECK(seq4_cpy.atValue(i) == data_array[4][i]);
+      }
+    }
+  }
+}
+TEST_CASE("biotypes/bioseq::iterators") {
   SECTION("iterator") {
     auto iterator = sequence4.begin();
     iterator += 2;

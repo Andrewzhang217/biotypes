@@ -13,6 +13,7 @@ namespace lbcb {
 struct Base {
   char value;
   char phred33;
+  constexpr bool operator==(const Base& other);
 };
 
 class Sequence {
@@ -23,7 +24,6 @@ class Sequence {
     using reference = const Base&;
     using pointer = const Base*;
 
-    iterator(const Sequence* sequence, std::size_t start_index);
     iterator(const iterator& other) = default;
     iterator(iterator&&) = default;
     iterator& operator=(const iterator& other) = default;
@@ -45,8 +45,10 @@ class Sequence {
     bool operator<(const iterator& rhs) const noexcept;
     bool operator>=(const iterator& rhs) const noexcept;
     bool operator<=(const iterator& rhs) const noexcept;
+    friend class Sequence;
 
    private:
+    iterator(const Sequence* sequence, std::size_t start_index);
     Base base_;
     const Sequence* sequence_;
     std::size_t pos_;
@@ -54,17 +56,21 @@ class Sequence {
   Sequence(std::string_view name, std::string_view data);
   Sequence(std::string_view name, std::string_view data,
            std::string_view quality);
-
+  Sequence(const Sequence& other) = default;
+  Sequence(Sequence&&) = default;
+  Sequence& operator=(const Sequence& other) = default;
+  Sequence& operator=(Sequence&& other) = default;
+  [[nodiscard]] std::string name() const noexcept;
   [[nodiscard]] std::size_t size() const noexcept;
   [[nodiscard]] Base atBase(std::size_t pos) const;
   [[nodiscard]] char atValue(std::size_t pos) const;
   [[nodiscard]] char atQuality(std::size_t pos) const;
   [[nodiscard]] Sequence::iterator begin() const;
   [[nodiscard]] Sequence::iterator end() const;
-
- private:
   static constexpr Base kSentinel{static_cast<char>(255),
                                   static_cast<char>(255)};
+
+ private:
   std::string name_;
   std::vector<std::uint64_t> compressed_data_;
   std::vector<std::uint64_t> compressed_quality_;
