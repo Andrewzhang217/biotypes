@@ -35,30 +35,18 @@ static constexpr std::array<std::uint64_t, 32> bits_array{
 static constexpr std::uint64_t trailing(
     0b0000000000000000000000000000000000000000000000000000000000001010);
 
-static Sequence sequence0("sequence0", data_array[0]);
-static Sequence sequence4("sequence4", data_array[4]);
-static Sequence* ptr0{&sequence0};
-static Sequence* ptr4(&sequence4);
+static const Sequence sequence0("sequence0", data_array[0]);
+static const Sequence sequence1("sequence1", data_array[1]);
+static const Sequence sequence2("sequence2", data_array[2]);
+static const Sequence sequence3("sequence3", data_array[3]);
+static const Sequence sequence4("sequence4", data_array[4]);
+static const Sequence* ptr0{&sequence0};
+static const Sequence* ptr1(&sequence1);
+static const Sequence* ptr2(&sequence2);
+static const Sequence* ptr3(&sequence3);
+static const Sequence* ptr4(&sequence4);
+
 TEST_CASE("biotypes/bioseq") {
-  SECTION("Compress (basic data)") {
-    auto res0 = detail::Compress(data_array[0]);
-    REQUIRE(res0[0] == bits_array[0]);
-    auto res1 = detail::Compress(data_array[1]);
-    REQUIRE(res1[0] == bits_array[1]);
-    auto res2 = detail::Compress(data_array[2]);
-    REQUIRE(res2[0] == bits_array[2]);
-    auto res3 = detail::Compress(data_array[3]);
-    REQUIRE(res3[0] == bits_array[3]);
-    auto res4 = detail::Compress(data_array[4]);
-    REQUIRE(res4[0] == bits_array[4]);
-    auto res5 = detail::Compress(data_array[5]);
-    REQUIRE(res5[0] == bits_array[4]);
-    REQUIRE(res5[1] == bits_array[4]);
-    auto res6 = detail::Compress(data_array[6]);
-    REQUIRE(res6[0] == bits_array[4]);
-    REQUIRE(res6[1] == bits_array[4]);
-    REQUIRE(res6[2] == trailing);
-  }
   SECTION("API: atValue") {
     REQUIRE(sequence0.atValue(1) == 'A');
     Sequence sequence4("sequence4", data_array[4]);
@@ -88,6 +76,19 @@ TEST_CASE("biotypes/bioseq") {
     REQUIRE((*iterator).value == 'G');
     iterator++;
     REQUIRE(iterator->value == 'T');
+    iterator--;
+    REQUIRE(iterator->value == 'G');
+    auto it0 = sequence0.begin();
+    it0 = sequence1.begin();
+    REQUIRE((*it0).value == 'C');
+    auto it1 = sequence1.begin();
+    auto it4{it1};
+    REQUIRE((*it4).value == 'C');
+    auto it2 = sequence2.begin();
+    auto it3 = std::move(it2);
+    REQUIRE((*it3).value == 'G');
+    auto temp{std::move(it3)};
+    REQUIRE((*temp).value == 'G');
     int counter = 0;
     for (auto it = sequence4.begin(); it != sequence4.end(); ++it) {
       REQUIRE((*it).value == data_array[4][counter]);
