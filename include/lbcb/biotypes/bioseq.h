@@ -13,7 +13,7 @@ namespace lbcb {
 struct Base {
   char value;
   char phred33;
-  constexpr bool operator==(const Base& other);
+  bool operator==(const Base& other) const;
 };
 
 class Sequence {
@@ -24,10 +24,6 @@ class Sequence {
     using reference = const Base&;
     using pointer = const Base*;
 
-    iterator(const iterator& other) = default;
-    iterator(iterator&&) = default;
-    iterator& operator=(const iterator& other) = default;
-    iterator& operator=(iterator&& other) = default;
     reference operator*() noexcept;
     pointer operator->() const noexcept;
     value_type operator[](std::size_t pos) noexcept;
@@ -56,10 +52,6 @@ class Sequence {
   Sequence(std::string_view name, std::string_view data);
   Sequence(std::string_view name, std::string_view data,
            std::string_view quality);
-  Sequence(const Sequence& other) = default;
-  Sequence(Sequence&&) = default;
-  Sequence& operator=(const Sequence& other) = default;
-  Sequence& operator=(Sequence&& other) = default;
   [[nodiscard]] std::string name() const noexcept;
   [[nodiscard]] std::size_t size() const noexcept;
   [[nodiscard]] Base atBase(std::size_t pos) const;
@@ -73,7 +65,7 @@ class Sequence {
  private:
   std::string name_;
   std::vector<std::uint64_t> compressed_data_;
-  std::vector<std::uint64_t> compressed_quality_;
+  std::vector<char> compressed_quality_;
   std::size_t size_;
 };
 }  // namespace lbcb

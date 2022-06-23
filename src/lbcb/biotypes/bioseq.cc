@@ -1,7 +1,9 @@
 #include "lbcb/biotypes/bioseq.h"
 
+#include <cassert>
 #include <cmath>
 #include <cstddef>
+#include <iostream>
 #include <utility>
 #include <vector>
 
@@ -47,7 +49,7 @@ static constexpr auto kBaseEncodings = std::array<std::uint8_t, 256> {
  */
 static constexpr char kNucleotideDecoder[] = {'A', 'C', 'G', 'T'};
 
-std::vector<std::uint64_t> Compress(std::string_view src) {
+std::vector<std::uint64_t> CompressData(std::string_view src) {
   std::vector<std::uint64_t> dst;
   dst.resize(std::ceil(static_cast<double>(src.size()) / 32));
   std::uint64_t active_block = 0U;
@@ -55,8 +57,7 @@ std::vector<std::uint64_t> Compress(std::string_view src) {
 
   for (auto i = 0U; i < src.size(); ++i) {
     if (i > 0 && (i & 31) == 0) {
-      dst[index] = std::exchange(active_block, 0);
-      index++;
+      dst[index++] = std::exchange(active_block, 0);
     }
     active_block = (active_block << 2U) | kBaseEncodings[src[i]];
   }
@@ -64,7 +65,28 @@ std::vector<std::uint64_t> Compress(std::string_view src) {
   dst[index] = active_block;
   return dst;
 }
-std::string Decompress(const std::vector<std::uint64_t>& dst) {
+std::vector<char> CompressQuality(std::string_view src) {
+  std::vector<char> dst;
+  dst.resize(std::ceil(static_cast<double>(src.size()) / 32));
+  int index = 0;
+  int sum = 0;
+
+  for (auto i = 0; i < src.size(); ++i) {
+    if (i > 0 && (i & 31) == 0) {
+      dst[index] = static_cast<char>(sum / 32);
+      index++;
+      sum = 0;
+    }
+    sum += src[i];
+  }
+  if ((src.size() & 31) == 0) {
+    dst[index] = static_cast<char>(sum / 32);
+  } else {
+    dst[index] = static_cast<char>(sum / (src.size() & 31));
+  }
+  return dst;
+}
+std::string DecompressData(const std::vector<std::uint64_t>& dst) {
   std::string src;
   for (unsigned long long it : dst) {
     std::string curr;
@@ -83,7 +105,7 @@ std::string Decompress(const std::vector<std::uint64_t>& dst) {
 }  // namespace lbcb::detail
 
 namespace lbcb {
-constexpr bool Base::operator==(const Base& other) {
+bool Base::operator==(const Base& other) const {
   return value == other.value && phred33 == other.phred33;
 }
 Sequence::iterator::iterator(const lbcb::Sequence* sequence,
@@ -177,25 +199,32 @@ bool Sequence::iterator::operator<=(
 }
 Sequence::Sequence(std::string_view name, std::string_view data)
     : name_((name)),
-      compressed_data_(detail::Compress(data)),
+      compressed_data_(detail::CompressData(data)),
+      compressed_quality_(),
       size_(data.size()) {}
 Sequence::Sequence(std::string_view name, std::string_view data,
                    std::string_view quality)
     : name_(name),
-      compressed_data_(detail::Compress(data)),
-      compressed_quality_(detail::Compress(quality)),
+      compressed_data_(detail::CompressData(data)),
+      compressed_quality_(detail::CompressQuality(quality)),
       size_(data.size()) {}
 Base Sequence::atBase(std::size_t pos) const {
-  assert(pos < size_);
+  assert(pos >= 0 && pos < size_);
+  if (compressed_quality_.empty())
+    return {atValue(pos), static_cast<char>(127)};
   return {atValue(pos), atQuality(pos)};
 }
 char Sequence::atValue(std::size_t pos) const {
-  assert(pos < size_);
+  assert(pos >= 0 && pos < size_);
   std::uint64_t block = compressed_data_[pos >> 5];
   block <<= 2 * (pos & 31);
   return detail::kNucleotideDecoder[block >> 62];
 }
-char Sequence::atQuality(std::size_t pos) const { return {}; }
+char Sequence::atQuality(std::size_t pos) const {
+  assert(pos >= 0 && pos < size_);
+  assert(!compressed_quality_.empty());
+  return compressed_quality_[pos / 32];
+}
 Sequence::iterator Sequence::begin() const { return {this, 0}; }
 Sequence::iterator Sequence::end() const { return {this, size_}; }
 std::string Sequence::name() const noexcept { return name_; }
