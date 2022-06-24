@@ -53,9 +53,9 @@ class Sequence {
   Sequence(std::string_view name, std::string_view data,
            std::string_view quality);
   Sequence(const Sequence& other) = default;
-  Sequence(Sequence&& other);
+  Sequence(Sequence&& other) noexcept;
   Sequence& operator=(const Sequence& other) = default;
-  Sequence& operator=(Sequence&& other) = default;
+  Sequence& operator=(Sequence&& other) noexcept;
   [[nodiscard]] std::string name() const noexcept;
   [[nodiscard]] std::size_t size() const noexcept;
   [[nodiscard]] Base atBase(std::size_t pos) const;
