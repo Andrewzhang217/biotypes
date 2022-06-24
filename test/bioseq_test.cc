@@ -83,35 +83,31 @@ TEST_CASE("biotypes/bioseq::Sequence") {
     }
 
     SECTION("move construction") {
-      auto const seq1_cpy(std::move(sequence1));
+      auto seq1_cpy(sequence1);
+      auto seq1_move(std::move(seq1_cpy));
 
-      CHECK(sequence1.name() == "sequence1");
-      CHECK(sequence1.size() == 32);
+      CHECK(seq1_move.name() == "sequence1");
+      CHECK(seq1_move.size() == 32);
       for (auto i = 0; i < 32; ++i) {
-        CHECK(sequence1.atValue(i) == data_array[1][i]);
+        CHECK(seq1_move.atValue(i) == data_array[1][i]);
       }
 
-      CHECK(seq1_cpy.name() == sequence1.name());
-      CHECK(seq1_cpy.size() == sequence1.size());
-      for (auto i = 0; i < 32; ++i) {
-        CHECK(seq1_cpy.atValue(i) == data_array[1][i]);
-      }
+      CHECK(seq1_cpy.name().empty());
+      CHECK(seq1_cpy.size() == 0);
     }
 
     SECTION("move assignment") {
-      auto const seq4_cpy = std::move(sequence4);
+      auto seq4_cpy(sequence4);
+      auto seq4_move = std::move(seq4_cpy);
 
-      CHECK(sequence4.name() == "sequence4");
-      CHECK(sequence4.size() == 32);
+      CHECK(seq4_move.name() == "sequence4");
+      CHECK(seq4_move.size() == 32);
       for (auto i = 0; i < 32; ++i) {
-        CHECK(sequence4.atValue(i) == data_array[4][i]);
+        CHECK(seq4_move.atValue(i) == data_array[4][i]);
       }
 
-      CHECK(seq4_cpy.name() == sequence4.name());
-      CHECK(seq4_cpy.size() == sequence4.size());
-      for (auto i = 0; i < 32; ++i) {
-        CHECK(seq4_cpy.atValue(i) == data_array[4][i]);
-      }
+      CHECK(seq4_cpy.name().empty());
+      CHECK(seq4_cpy.size() == 0);
     }
   }
 }

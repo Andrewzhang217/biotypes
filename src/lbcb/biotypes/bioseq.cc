@@ -229,5 +229,12 @@ Sequence::iterator Sequence::begin() const { return {this, 0}; }
 Sequence::iterator Sequence::end() const { return {this, size_}; }
 std::string Sequence::name() const noexcept { return name_; }
 std::size_t Sequence::size() const noexcept { return size_; }
+Sequence::Sequence(Sequence&& other) {
+  name_ = std::move(other.name_);
+  size_ = other.size_;
+  other.size_ = 0;
+  compressed_data_ = std::move(other.compressed_data_);
+  compressed_quality_ = std::move(other.compressed_quality_);
+}
 
 }  // namespace lbcb
